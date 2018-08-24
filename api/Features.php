@@ -136,7 +136,8 @@ class Features extends Simpla
 		}
 	}
 			
-
+	// Система фильтрации
+	// Довольно сильно переработана функция
 	public function get_options($filter = array())
 	{
 		$feature_id_filter = '';
@@ -146,6 +147,7 @@ class Features extends Simpla
 		$brand_id_filter = '';
 		$features_filter = '1 as actual,';
 
+		// Система фильтрации
 		// Нужны опции только товаров в наличии и с ценой
 		$in_stock_filter = '';
 		// Необходимый запрос для отметки выбранных опций сразу
@@ -181,6 +183,7 @@ class Features extends Simpla
 			}
 		*/
 
+		// Система фильтрации
 		if(isset($filter['features']))
 		{
 			$first_iterration = true;
@@ -238,21 +241,26 @@ class Features extends Simpla
 		$this->db->query($query);
 		$mid_result = $this->db->results();
 
+		print_r($mid_result);
+
 		// Отметим актуальные, оставим униклаьные
 		$actual_options = array();
 		if(!empty($mid_result))
 		{
 			foreach ($mid_result as $mr) 
 			{
-				if((empty($actual_oprions[$mr->value])) || ($actual_options[$mr->value]->actual < $mr->actual))
+				if((empty($actual_options[$mr->value])) || (intval($actual_options[$mr->value]->actual) < intval($mr->actual)))
 				{
 					$actual_options[$mr->value] = $mr;
 				}
 			}
 		}
+		print_r('<br/><br/>');
+		print_r($actual_options);
 	
 		return $actual_options;
 	}
+	// Система фильтрации (The end)
 	
 	public function get_product_options($product_id)
 	{

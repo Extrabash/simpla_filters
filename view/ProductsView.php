@@ -66,6 +66,7 @@ class ProductsView extends View
 			$filter['sort'] = 'position';			
 		$this->design->assign('sort', $filter['sort']);
 		
+		// Система фильтрации
 		// Свойства товаров
 		if(!empty($category))
 		{
@@ -123,6 +124,7 @@ class ProductsView extends View
 
 			$this->design->assign('features', $features);
  		}
+ 		// Система фильтрации (The end)
 
 		// Постраничная навигация
 		$items_per_page = $this->settings->products_num;		
