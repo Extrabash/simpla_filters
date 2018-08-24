@@ -144,7 +144,12 @@ class Features extends Simpla
 		$category_id_filter = '';
 		$visible_filter = '';
 		$brand_id_filter = '';
-		$features_filter = '';
+		$features_filter = '1 as actual,';
+
+		// Нужны опции только товаров в наличии и с ценой
+		$in_stock_filter = '';
+		// Необходимый запрос для отметки выбранных опций сразу
+		$selected_options = '';
 
 		if(empty($filter['feature_id']) && empty($filter['product_id']))
 			return array();
@@ -168,21 +173,85 @@ class Features extends Simpla
 		if(isset($filter['brand_id']))
 			$brand_id_filter = $this->db->placehold('AND po.product_id in(SELECT id FROM __products WHERE brand_id in(?@))', (array)$filter['brand_id']);
 
+		/*
 		if(isset($filter['features']))
 			foreach($filter['features'] as $feature=>$value)
 			{
 				$features_filter .= $this->db->placehold('AND (po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value=? )) ', $feature, $feature, $value);
 			}
+		*/
+
+		if(isset($filter['features']))
+		{
+			$first_iterration = true;
+			$total = count($filter['features']);
+			$counter = 0;
+			foreach($filter['features'] as $feature=>$value)
+			{
+				$counter++;
+
+				if($first_iterration)
+				{
+					$first_iterration  = false;
+					$features_filter  = $this->db->placehold('IF (('); 
+					$selected_options = $this->db->placehold('IF (('); 
+				}
+				
+				$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) )) ', $feature, $feature, $value);
+
+				$selected_options .= $this->db->placehold('(po.feature_id=? AND po.value in(?@) ) ', $feature, $value);
+
+				if($counter == $total) 
+				{
+					$features_filter  .= $this->db->placehold('), 1, 0) AS actual,'); 
+					$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
+				}
+				else
+				{
+					$features_filter  .= $this->db->placehold('AND '); 
+					$selected_options .= $this->db->placehold('OR ');
+				}
+
+				// Собрали запрос, который отдаст все опции, но покажет какие актуальные
+			}
+		}
 		
 
-		$query = $this->db->placehold("SELECT po.product_id, po.feature_id, po.value, count(po.product_id) as count
-		    FROM __options po
-		    $visible_filter
-			$category_id_filter
-			WHERE 1 $feature_id_filter $product_id_filter $brand_id_filter $features_filter GROUP BY po.feature_id, po.value ORDER BY value=0, -value DESC, value");
-
+		$query = $this->db->placehold("SELECT 
+										po.product_id, 
+										po.feature_id, 
+										po.value, 
+										$features_filter
+										$selected_options
+										count(po.product_id) as count
+		    							FROM __options po
+		    							$visible_filter
+										$category_id_filter
+										WHERE 1 
+										$feature_id_filter 
+										$product_id_filter 
+										$brand_id_filter 
+										$in_stock_filter
+										GROUP BY po.feature_id, po.value, actual 
+										ORDER BY value=0, -value DESC, value");
+		
 		$this->db->query($query);
-		return $this->db->results();
+		$mid_result = $this->db->results();
+
+		// Отметим актуальные, оставим униклаьные
+		$actual_options = array();
+		if(!empty($mid_result))
+		{
+			foreach ($mid_result as $mr) 
+			{
+				if((empty($actual_oprions[$mr->value])) || ($actual_options[$mr->value]->actual < $mr->actual))
+				{
+					$actual_options[$mr->value] = $mr;
+				}
+			}
+		}
+	
+		return $actual_options;
 	}
 	
 	public function get_product_options($product_id)

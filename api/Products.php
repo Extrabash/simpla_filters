@@ -105,7 +105,7 @@ class Products extends Simpla
 
 		if(!empty($filter['features']) && !empty($filter['features']))
 			foreach($filter['features'] as $feature=>$value)
-				$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value=? ) ', $feature, $value);
+				$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) ) ', $feature, (array)$value);
 
 		$query = "SELECT  
 					p.id,
@@ -200,7 +200,7 @@ class Products extends Simpla
 		
 		if(!empty($filter['features']) && !empty($filter['features']))
 			foreach($filter['features'] as $feature=>$value)
-				$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value=? ) ', $feature, $value);
+				$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) ) ', $feature, (array)$value);
 		
 		$query = "SELECT count(distinct p.id) as count
 				FROM __products AS p

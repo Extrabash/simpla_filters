@@ -37,6 +37,10 @@ class SettingsAdmin extends Simpla
 			$this->settings->pz_server = $this->request->post('pz_server');
 			$this->settings->pz_password = $this->request->post('pz_password');
 			$this->settings->pz_phones = $this->request->post('pz_phones');
+
+			// Система фильтрации
+			$this->settings->filters_new = $this->request->post('filters_new');
+			$this->settings->filters_summ = $this->request->post('filters_summ');
 			
 			
 			// Водяной знак

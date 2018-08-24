@@ -71,23 +71,40 @@ class ProductsView extends View
 		{
 			$features = array();
 			foreach($this->features->get_features(array('category_id'=>$category->id, 'in_filter'=>1)) as $feature)
-			{ 
+			{
+				// Собираем массив всех фич
 				$features[$feature->id] = $feature;
-				if(($val = strval($this->request->get($feature->id)))!='')
-					$filter['features'][$feature->id] = $val;	
+				if(!empty($val = $this->request->get($feature->id)))
+				{
+					// Добавляем в фильтрацию товаров
+					// Отбор по заполненным фильтрам
+					$filter['features'][$feature->id] = $val;
+				}
 			}
-			
+
+			// Нам нужны опции только от видимых товаров
+			// И только от товаров в наличии
 			$options_filter['visible'] = 1;
-			
+			$options_filter['in_stock'] = 1;
+
 			$features_ids = array_keys($features);
 			if(!empty($features_ids))
 				$options_filter['feature_id'] = $features_ids;
 			$options_filter['category_id'] = $category->children;
+
+
+			// Проверяем фильтр заполненных фич,
+			// Получим только актуальные опции
 			if(isset($filter['features']))
 				$options_filter['features'] = $filter['features'];
+
+			// Тут нам нужны ВСЕ опции,
+			// Нужно узнать какие из них Актуальные,
+			// А какие еще и выделены в данный момент
+
 			if(!empty($brand))
 				$options_filter['brand_id'] = $brand->id;
-			
+
 			$options = $this->features->get_options($options_filter);
 
 			foreach($options as $option)
@@ -95,9 +112,11 @@ class ProductsView extends View
 				if(isset($features[$option->feature_id]))
 					$features[$option->feature_id]->options[] = $option;
 			}
-			
+
+			// проверка - если у фичи нет ни 1 опции,
+			// то выпилим ее и выводить не будем
 			foreach($features as $i=>&$feature)
-			{ 
+			{
 				if(empty($feature->options))
 					unset($features[$i]);
 			}

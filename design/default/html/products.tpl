@@ -70,21 +70,33 @@
 
 {* Фильтр по свойствам *}
 {if $features}
-<table id="features">
-	{foreach $features as $key=>$f}
-	<tr>
-	<td class="feature_name" data-feature="{$f->id}">
-		{$f->name}:
-	</td>
-	<td class="feature_values">
-		<a href="{url params=[$f->id=>null, page=>null]}" {if !$smarty.get.$key}class="selected"{/if}>Все</a>
-		{foreach $f->options as $o}
-		<a href="{url params=[$f->id=>$o->value, page=>null]}" {if $smarty.get.$key == $o->value}class="selected"{/if}>{$o->value|escape}</a>
+
+	{* Система фильтрации *}
+	{if $settings->filters_new}
+		{include file="filters.tpl"}
+	{else}
+	{* Система фильтрации (The End) *}
+
+	<table id="features">
+		{foreach $features as $key=>$f}
+		<tr>
+		<td class="feature_name" data-feature="{$f->id}">
+			{$f->name}:
+		</td>
+		<td class="feature_values">
+			<a href="{url params=[$f->id=>null, page=>null]}" {if !$smarty.get.$key}class="selected"{/if}>Все</a>
+			{foreach $f->options as $o}
+			<a href="{url params=[$f->id=>$o->value, page=>null]}" {if $smarty.get.$key == $o->value}class="selected"{/if}>{$o->value|escape}</a>
+			{/foreach}
+		</td>
+		</tr>
 		{/foreach}
-	</td>
-	</tr>
-	{/foreach}
-</table>
+	</table>
+
+	{* Система фильтрации *}
+	{/if}
+	{* Система фильтрации (The End) *}
+	
 {/if}
 
 

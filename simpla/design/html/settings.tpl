@@ -87,6 +87,30 @@
 			</ul>
 		</div>
 		<!-- Параметры (The End)-->
+
+		<!-- Система фильтрации -->
+		<div class="block layer">
+			<h2>Настройки каталога</h2>
+
+			<ul>
+				<li>
+					<label class="property">Используемые фильтры</label>
+					<select name="filters_new" class="simpla_inp" title="settings->filters_new">
+						<option value='0' {if ($settings->filters_new == '0') || !$settings->filters_new}selected{/if}>Стандартные</option>
+						<option value='1' {if $settings->filters_new == '1'}selected{/if}>Новые</option>
+					</select>
+				</li>
+
+				<li>
+					<label class="property">Диапазон цен<br/><i>*в новых фильтрах</i></label>
+					<select name="filters_summ" class="simpla_inp" title="settings->filters_summ">
+						<option value='0' {if ($settings->filters_summ == '0') || !$settings->filters_summ}selected{/if}>Не выводить</option>
+						<option value='1' {if $settings->filters_summ == '1'}selected{/if}>Выводить</option>
+					</select>
+				</li>
+			</ul>
+		</div>
+		<!-- Система фильтрации (The End) -->
 		
 		<!-- Параметры -->
 		<div class="block layer">
