@@ -108,17 +108,21 @@ class ProductsView extends View
 
 			$options = $this->features->get_options($options_filter);
 
+			// Тут мы уже знаем все опции всех подходящих товаров, в том числе и цифровые,
+			// Без учета фильтрации по диапазону,
+			// Самое время узнать минимум и максимум диапазона
 			foreach($options as $option)
 			{
-				if(isset($features[$option->feature_id]))
+				if(isset($features[$option->feature_id]) && !$features[$option->feature_id]->digital)
 					$features[$option->feature_id]->options[] = $option;
 			}
 
 			// проверка - если у фичи нет ни 1 опции,
+			// Или нет минимума и максимума под диапазон,
 			// то выпилим ее и выводить не будем
 			foreach($features as $i=>&$feature)
 			{
-				if(empty($feature->options))
+				if(empty($feature->options) )
 					unset($features[$i]);
 			}
 
