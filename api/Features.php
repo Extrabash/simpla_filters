@@ -29,9 +29,17 @@ class Features extends Simpla
 			$id_filter = $this->db->placehold('AND f.id in(?@)', (array)$filter['id']);
 		
 		// Выбираем свойства
-		$query = $this->db->placehold("SELECT id, name, position, in_filter FROM __features AS f
-									WHERE 1
-									$category_id_filter $in_filter_filter $id_filter ORDER BY f.position");
+		$query = $this->db->placehold("	SELECT 
+										id, 
+										name, 
+										position, 
+										in_filter, 
+										digital 
+										FROM __features AS f
+										WHERE 1
+										$category_id_filter 
+										$in_filter_filter $id_filter 
+										ORDER BY f.position");
 		$this->db->query($query);
 		return $this->db->results();
 	}
@@ -39,7 +47,16 @@ class Features extends Simpla
 	function get_feature($id)
 	{
 		// Выбираем свойство
-		$query = $this->db->placehold("SELECT id, name, position, in_filter FROM __features WHERE id=? LIMIT 1", $id);
+		$query = $this->db->placehold("	SELECT 
+										id, 
+										name, 
+										position, 
+										in_filter, 
+										digital 
+										FROM __features 
+										WHERE id=? 
+										LIMIT 1", 
+										$id);
 		$this->db->query($query);
 		return $this->db->result();
 	}

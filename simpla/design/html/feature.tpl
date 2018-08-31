@@ -84,9 +84,13 @@ $(function() {
 			</ul>
 			<ul>
 				<li>
-					<input type=checkbox name=in_filter id=digital {if $feature->digital}checked{/if} value="1"> 
+					<input type=checkbox name=digital id=digital {if $feature->digital}checked{/if} value="1"> 
 					<label for=digital>Цифровое свойство - диапазон</label>
-					<span><i>* <b>Внимание</b>, данное свойство сможет сохранять только цифровые значения для правильно фильтрации, возможны ошибки, если применить на старое свойство с текстовыми полями</i></span>
+					<br/>
+					<br/>
+					<span>
+						<i>* <b>Внимание</b>, данное свойство сможет сохранять только цифровые значения для правильно фильтрации, возможны ошибки, если применить на старое свойство с текстовыми полями</i>
+					</span>
 				</li>
 			</ul>
 		</div>
