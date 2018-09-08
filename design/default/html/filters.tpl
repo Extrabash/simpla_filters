@@ -24,18 +24,49 @@
 
 	{foreach $features as $f}
 	<div data-feature="{$f->id}">
-		<div class="title"><b>{$f->name|escape}</b></div>
+		<div class="title"><b>{$f->name|escape} - {$f->id}</b></div>
 
 		<div>
-			{foreach from=$f->options item=o name=features}
-			<div class='checkbox'>
-				<input type="checkbox" name="{$f->id}[]" value="{$o->value}" id="feature_{$f->id}_{$smarty.foreach.features.index}" {if !$o->actual}disabled{/if} {if $o->selected}checked{/if} onchange="this.form.submit();"/>
+			{if $f->options}
+				{foreach from=$f->options item=o name=features}
+				<div class='checkbox'>
+					<input type="checkbox" name="{$f->id}[]" value="{$o->value}" id="feature_{$f->id}_{$smarty.foreach.features.index}" {if !$o->actual}disabled{/if} {if $o->selected}checked{/if} onchange="this.form.submit();"/>
 
-				<label for="feature_{$f->id}_{$smarty.foreach.features.index}">
-					<div class="name">{$o->value|escape}</div>
-				</label>
-			</div>
-			{/foreach}
+					<label for="feature_{$f->id}_{$smarty.foreach.features.index}">
+						<div class="name">{$o->value|escape}</div>
+					</label>
+				</div>
+				{/foreach}
+			{else}
+
+
+				full_min: {$f->full_min->value}<br/>
+				full_max: {$f->full_max->value}<br/><br/>
+				
+				
+				actual_min: {$f->actual_min->value}<br/>
+				actual_max: {$f->actual_max->value}<br/><br/>
+
+				get_min: {$f->get_min}<br/>
+				get_max: {$f->get_max}<br/><br/>
+
+				{*Добавить инпуты и крипты*}
+
+				min: <input type="text" name="min_{$f->id}" value="
+				{if $f->get_min}
+				{$f->get_min}
+				{else}
+				{$f->actual_min->value}
+				{/if}" title="Минимальное значение {$f->name|escape}"/>
+				<br/>
+				max: <input type="text" name="max_{$f->id}" value="
+				{if $f->get_max}
+				{$f->get_max}
+				{else}
+				{$f->actual_max->value}
+				{/if}" title="Максимальное значение {$f->name|escape}"/>
+
+			{/if}
 		</div>
 	</div>
 	<br/>

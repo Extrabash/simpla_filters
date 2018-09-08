@@ -258,7 +258,7 @@ class Features extends Simpla
 		$this->db->query($query);
 		$mid_result = $this->db->results();
 
-		print_r($mid_result);
+		//print_r($mid_result);
 
 		// Отметим актуальные, оставим униклаьные
 		$actual_options = array();
@@ -272,8 +272,8 @@ class Features extends Simpla
 				}
 			}
 		}
-		print_r('<br/><br/>');
-		print_r($actual_options);
+		//print_r('<br/><br/>');
+		//print_r($actual_options);
 	
 		return $actual_options;
 	}
