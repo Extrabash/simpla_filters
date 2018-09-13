@@ -71,6 +71,7 @@ class ProductsView extends View
 		if(!empty($category))
 		{
 			$features = array();
+			$digital_features = array();
 			foreach($this->features->get_features(array('category_id'=>$category->id, 'in_filter'=>1)) as $feature)
 			{
 				// Собираем массив всех фич
@@ -83,8 +84,15 @@ class ProductsView extends View
 				}
 				elseif(!empty($min_val = $this->request->get('min_'.$feature->id)) && !empty($max_val = $this->request->get('max_'.$feature->id)))
 				{
+					// Тут мы узнали все заданные диапазоны всех диапазонных свойств
 					$features[$feature->id]->get_min = floatval($min_val);
 					$features[$feature->id]->get_max = floatval($max_val);
+
+					$filter['features'][$feature->id] = true;
+
+					$digital_features[$feature->id]->id = $feature->id;
+					$digital_features[$feature->id]->get_min = floatval($min_val);
+					$digital_features[$feature->id]->get_max = floatval($max_val);
 				}
 			}
 
@@ -106,83 +114,10 @@ class ProductsView extends View
 			if(isset($filter['features']))
 				$options_filter['features'] = $filter['features'];
 
+			// Передадим все о цифровых опциях если такие есть
+			if(!empty($digital_features))
+				$options_filter['digital_features'] = $digital_features;
 
-			// Фильтрация без диапазонов
-			$options_mid = $this->features->get_options($options_filter);
-
-			foreach ($options_mid as $option) {
-				if(isset($features[$option->feature_id]))
-				{
-					// Диапазоны
-					if($features[$option->feature_id]->digital)
-					{
-						
-						// Тут нужно узнать полный и актуальные минимумы и максимумы 
-
-						// Полные
-						if(!isset($features[$option->feature_id]->full_min))
-							$features[$option->feature_id]->full_min = $option;
-						if(!isset($features[$option->feature_id]->full_max))
-							$features[$option->feature_id]->full_max = $option;
-
-						if($option->value < $features[$option->feature_id]->full_min->value)
-							$features[$option->feature_id]->full_min = $option;
-
-						if($option->value > $features[$option->feature_id]->full_max->value)
-							$features[$option->feature_id]->full_max = $option;
-
-
-						if($option->actual)
-						{ 
-
-							// Актуальные
-							if(!isset($features[$option->feature_id]->actual_min))
-								$features[$option->feature_id]->actual_min = $option;
-							if(!isset($features[$option->feature_id]->actual_max))
-								$features[$option->feature_id]->actual_max = $option;
-
-							if($option->value < $features[$option->feature_id]->actual_min->value)
-								$features[$option->feature_id]->actual_min = $option;
-
-							if($option->value > $features[$option->feature_id]->actual_max->value)
-								$features[$option->feature_id]->actual_max = $option;
-
-							
-							{
-								// Нужно получить минимум и максимум из гет для фильтра диапазона,
-								// И добавить необходимые величины к фильтрации
-
-								//print_r($min_val);
-								//print_r('<br/>');
-								//print_r($max_val);
-
-
-
-								if((floatval($option->value) >= $features[$option->feature_id]->get_min) && (floatval($option->value) <= $features[$option->feature_id]->get_max))
-								{
-									//print_r($option->value);
-									$filter['features'][$option->feature_id][] = $option->value;
-								}
-
-							}
-
-							unset($min_val);
-							unset($max_val);
-
-						}
-
-					}
-				}
-			}
-
-			print_r($filter['features']); 
-
-			unset($option);
-
-
-			// Тут мы знаем все что попало актуального в диапазоны для фильрации,
-			// И добавляем эти данные к фильтрации,
-			// Так-же знаем все 4 предела диапазонов
 
 			// Проверяем фильтр заполненных фич,
 			// Получим только актуальные опции
@@ -206,6 +141,38 @@ class ProductsView extends View
 					{
 						// Обычные свойства
 						$features[$option->feature_id]->options[] = $option;
+					}
+					else
+					{
+						// Тут нужно узнать полный и актуальные минимумы и максимумы 
+
+						// Полные
+						if(!isset($features[$option->feature_id]->full_min))
+							$features[$option->feature_id]->full_min = $option;
+						if(!isset($features[$option->feature_id]->full_max))
+							$features[$option->feature_id]->full_max = $option;
+
+						if($option->value < $features[$option->feature_id]->full_min->value)
+							$features[$option->feature_id]->full_min = $option;
+
+						if($option->value > $features[$option->feature_id]->full_max->value)
+							$features[$option->feature_id]->full_max = $option;
+
+						if($option->actual)
+						{ 
+
+							// Актуальные, но не учитывая остальные диапазоны
+							if(!isset($features[$option->feature_id]->actual_min))
+								$features[$option->feature_id]->actual_min = $option;
+							if(!isset($features[$option->feature_id]->actual_max))
+								$features[$option->feature_id]->actual_max = $option;
+
+							if($option->value < $features[$option->feature_id]->actual_min->value)
+								$features[$option->feature_id]->actual_min = $option;
+
+							if($option->value > $features[$option->feature_id]->actual_max->value)
+								$features[$option->feature_id]->actual_max = $option;
+						}
 					}
 				}
 			}
@@ -252,6 +219,14 @@ class ProductsView extends View
 		$discount = 0;
 		if(isset($_SESSION['user_id']) && $user = $this->users->get_user(intval($_SESSION['user_id'])))
 			$discount = $user->discount;
+
+		// Передадим все о цифровых опциях если такие есть
+		if(!empty($digital_features))
+			$filter['digital_features'] = $digital_features;
+
+		print_r('<b>products_filter</b><br/>');
+		print_r($filter);
+		print_r('<br/><br/>');
 			
 		// Товары 
 		$products = array();

@@ -200,6 +200,10 @@ class Features extends Simpla
 			}
 		*/
 
+		print_r('<b>options_filter</b><br/>');
+		print_r($filter);
+		print_r('<br/><br/>');
+
 		// Система фильтрации
 		if(isset($filter['features']))
 		{
@@ -216,20 +220,40 @@ class Features extends Simpla
 					$features_filter  = $this->db->placehold('IF (('); 
 					$selected_options = $this->db->placehold('IF (('); 
 				}
-				
-				$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) )) ', $feature, $feature, $value);
 
-				$selected_options .= $this->db->placehold('(po.feature_id=? AND po.value in(?@) ) ', $feature, $value);
-
-				if($counter == $total) 
+				if($filter['digital_features'][$feature]->id != $feature)
 				{
-					$features_filter  .= $this->db->placehold('), 1, 0) AS actual,'); 
-					$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
+					// Запрос для обычных свойств
+
+					$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) )) ', $feature, $feature, $value);
+
+					$selected_options .= $this->db->placehold('(po.feature_id=? AND po.value in(?@) ) ', $feature, $value);
+				
 				}
 				else
 				{
+					// Запрос для диапазонных свойств
+					$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? )) ', 
+											$feature,
+											$feature, 
+											$filter['digital_features'][$feature]->get_min, 
+											$filter['digital_features'][$feature]->get_max);
+
+					$selected_options .= $this->db->placehold('(po.feature_id=? AND po.value BETWEEN ? AND ? ) ', 
+											$feature, 
+											$filter['digital_features'][$feature]->get_min, 
+											$filter['digital_features'][$feature]->get_max);
+				}
+				
+				if($counter != $total) 
+				{
 					$features_filter  .= $this->db->placehold('AND '); 
 					$selected_options .= $this->db->placehold('OR ');
+				}
+				else
+				{
+					$features_filter  .= $this->db->placehold('), 1, 0) AS actual,'); 
+					$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
 				}
 
 				// Собрали запрос, который отдаст все опции, но покажет какие актуальные
@@ -254,12 +278,16 @@ class Features extends Simpla
 										$in_stock_filter
 										GROUP BY po.feature_id, po.value, actual 
 										ORDER BY value=0, -value DESC, value");
+
+		
+		print_r('<b>options_query</b><br/>');
+		print_r($query);
+		print_r('<br/><br/>');
 		
 		$this->db->query($query);
 		$mid_result = $this->db->results();
 
-		//print_r($mid_result);
-
+		
 		// Отметим актуальные, оставим униклаьные
 		$actual_options = array();
 		if(!empty($mid_result))
@@ -272,9 +300,7 @@ class Features extends Simpla
 				}
 			}
 		}
-		//print_r('<br/><br/>');
-		//print_r($actual_options);
-	
+			
 		return $actual_options;
 	}
 	// Система фильтрации (The end)
