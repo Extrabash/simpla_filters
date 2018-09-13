@@ -167,6 +167,110 @@ class Products extends Simpla
 		return $this->db->results();
 	}
 
+	// Функция позволит узнать минимум и максимум цены с учетом отборов и фильтров
+
+	public function get_min_max_prices($filter = array())
+	{		
+		// По умолчанию
+		$category_id_filter = '';
+		$brand_id_filter = '';
+		$product_id_filter = '';
+		$features_filter = '';
+		$keyword_filter = '';
+		$visible_filter = '';
+		$is_featured_filter = '';
+		$discounted_filter = '';
+		$in_stock_filter = '';
+
+		if(!empty($filter['id']))
+			$product_id_filter = $this->db->placehold('AND p.id in(?@)', (array)$filter['id']);
+
+		if(!empty($filter['category_id']))
+		{
+			$category_id_filter = $this->db->placehold('INNER JOIN __products_categories pc ON pc.product_id = p.id AND pc.category_id in(?@)', (array)$filter['category_id']);
+		}
+
+		if(!empty($filter['brand_id']))
+			$brand_id_filter = $this->db->placehold('AND p.brand_id in(?@)', (array)$filter['brand_id']);
+
+		if(isset($filter['featured']))
+			$is_featured_filter = $this->db->placehold('AND p.featured=?', intval($filter['featured']));
+
+		if(isset($filter['discounted']))
+			$discounted_filter = $this->db->placehold('AND (SELECT 1 FROM __variants pv WHERE pv.product_id=p.id AND pv.compare_price>0 LIMIT 1) = ?', intval($filter['discounted']));
+
+		if(isset($filter['in_stock']))
+			$in_stock_filter = $this->db->placehold('AND (SELECT count(*)>0 FROM __variants pv WHERE pv.product_id=p.id AND pv.price>0 AND (pv.stock IS NULL OR pv.stock>0) LIMIT 1) = ?', intval($filter['in_stock']));
+
+		if(isset($filter['visible']))
+			$visible_filter = $this->db->placehold('AND p.visible=?', intval($filter['visible']));
+
+		if(!empty($filter['keyword']))
+		{
+			$keywords = explode(' ', $filter['keyword']);
+			foreach($keywords as $keyword)
+			{
+				$kw = $this->db->escape(trim($keyword));
+				if($kw!=='')
+					$keyword_filter .= $this->db->placehold("AND (p.name LIKE '%$kw%' OR p.meta_keywords LIKE '%$kw%' OR p.id in (SELECT product_id FROM __variants WHERE sku LIKE '%$kw%'))");
+			}
+		}
+
+		if(!empty($filter['features']) && !empty($filter['features']))
+			foreach($filter['features'] as $feature=>$value)
+			{
+				if($filter['digital_features'][$feature]->id != $feature)
+				{
+					// Запрос для обычных свойств
+					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) ) ', $feature, (array)$value);
+				}
+				else
+				{
+					// Запрос для диапазонных свойств
+					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? ) ', 
+											$feature,
+											$filter['digital_features'][$feature]->get_min, 
+											$filter['digital_features'][$feature]->get_max);
+				}
+			}
+
+		print_r('<b>prices_filter_inside</b><br/>');
+		print_r($filter);
+		print_r('<br/><br/>');
+
+		$query = "  SELECT 
+					MAX(v.price) as max_price,
+					MIN(v.price) as min_price
+					FROM __variants AS v
+					WHERE
+					v.product_id in (
+					SELECT p.id			
+					FROM __products p		
+					$category_id_filter 
+					LEFT JOIN __brands b ON p.brand_id = b.id
+					WHERE 
+						1
+						$product_id_filter
+						$brand_id_filter
+						$features_filter
+						$keyword_filter
+						$is_featured_filter
+						$discounted_filter
+						$in_stock_filter
+						$visible_filter)
+					";
+
+		$this->db->query($query);
+
+		print_r('<b>prices_query</b><br/>');
+		print_r($query);
+		print_r('<br/><br/>');
+
+		return $this->db->results();
+	}
+
+
+
 	/**
 	* Функция возвращает количество товаров
 	* Возможные значения фильтра:

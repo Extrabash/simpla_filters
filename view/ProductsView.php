@@ -109,6 +109,9 @@ class ProductsView extends View
 			if(!empty($brand))
 				$options_filter['brand_id'] = $brand->id;
 
+			// Тут мы можем узнать полные диапазоны цен, без учета примененных фильтров
+			
+
 			// Проверяем фильтр заполненных фич,
 			// Получим только актуальные опции
 			if(isset($filter['features']))
@@ -116,18 +119,63 @@ class ProductsView extends View
 
 			// Передадим все о цифровых опциях если такие есть
 			if(!empty($digital_features))
+			{
+
 				$options_filter['digital_features'] = $digital_features;
 
 
-			// Проверяем фильтр заполненных фич,
-			// Получим только актуальные опции
-			if(isset($filter['features']))
-				$options_filter['features'] = $filter['features'];
+				// Первая фильтрация, позволит узнать полные края диапазонов
+				$options_mid = $this->features->get_options($options_filter);
+
+				foreach ($options_mid as $option) {
+					if(isset($features[$option->feature_id]))
+					{
+						// Диапазоны
+						if($features[$option->feature_id]->digital)
+						{
+
+							// Тут нужно узнать полный и актуальные минимумы и максимумы 
+
+							// Полные
+							if(!isset($features[$option->feature_id]->full_min))
+								$features[$option->feature_id]->full_min = $option;
+							if(!isset($features[$option->feature_id]->full_max))
+								$features[$option->feature_id]->full_max = $option;
+
+							if($option->value < $features[$option->feature_id]->full_min->value)
+								$features[$option->feature_id]->full_min = $option;
+
+							if($option->value > $features[$option->feature_id]->full_max->value)
+								$features[$option->feature_id]->full_max = $option;
+
+						}
+					}
+				}
+
+				// Очистим опцию, чтобы не влетела в следующий перебор
+				unset($option);
+
+
+				// Узнав полные диапазоны фильтра,
+				// Мы можем учитывать его в фильтрации, или не учитывать
+				// Основываясь на этой информации
+
+				foreach ($digital_features as $df) {
+					if(($features[$df->id]->full_min->value == $df->get_min) && ($features[$df->id]->full_max->value == $df->get_max))
+						unset($filter['features'][$df->id]);
+				}
+
+				if(isset($filter['features']))
+					$options_filter['features'] = $filter['features'];
+
+			}
+
+			// Тут мы можем узнать края цен, учитывая правильную фильтрацию по всем опциям
+
 
 			// Тут нам нужны ВСЕ опции,
 			// Нужно узнать какие из них Актуальные,
 			// А какие еще и выделены в данный момент
-
 			$options = $this->features->get_options($options_filter);
 
 			// Тут мы уже знаем все опции всех подходящих товаров, в том числе и цифровые,
@@ -144,23 +192,10 @@ class ProductsView extends View
 					}
 					else
 					{
-						// Тут нужно узнать полный и актуальные минимумы и максимумы 
 
-						// Полные
-						if(!isset($features[$option->feature_id]->full_min))
-							$features[$option->feature_id]->full_min = $option;
-						if(!isset($features[$option->feature_id]->full_max))
-							$features[$option->feature_id]->full_max = $option;
-
-						if($option->value < $features[$option->feature_id]->full_min->value)
-							$features[$option->feature_id]->full_min = $option;
-
-						if($option->value > $features[$option->feature_id]->full_max->value)
-							$features[$option->feature_id]->full_max = $option;
-
+						// Тут нужно узнать актуальные минимумы и максимумы 
 						if($option->actual)
 						{ 
-
 							// Актуальные, но не учитывая остальные диапазоны
 							if(!isset($features[$option->feature_id]->actual_min))
 								$features[$option->feature_id]->actual_min = $option;
@@ -173,6 +208,7 @@ class ProductsView extends View
 							if($option->value > $features[$option->feature_id]->actual_max->value)
 								$features[$option->feature_id]->actual_max = $option;
 						}
+
 					}
 				}
 			}
