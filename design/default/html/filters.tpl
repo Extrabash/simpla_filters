@@ -1,22 +1,35 @@
 <form action="" id="filter" category_id="{if $category}{$category->id}{/if}">
 
 	{* Фильтрация по цене *}
-	{if $settings->filters_summ}
+	{if $settings->filters_summ && $prices_info}
 	<div class="box_filter">
 		<div class="title">Цена</div>
 
-		<div class="bord">
-			<div class="range_filter price_range">
-				<input type="text" name="" value="" id="price_range" />
-				<input type="text" name="price_from" min_val="{$min_max_prices->min_price}" value="{if $min_max_prices_actual->min_price}{$min_max_prices_actual->min_price}{else}{$min_max_prices->min_price}{/if}" class="input ot left" />
-				<input type="text" name="price_to" max_val="{$min_max_prices->max_price}" value="{if $min_max_prices_actual->max_price}{$min_max_prices_actual->max_price}{else}{$min_max_prices->max_price}{/if}" class="input do right" />
-				<div class="clear"></div>
-			</div>
+		full_min: {$prices_info->total->min_price}<br/>
+		full_max: {$prices_info->total->max_price}<br/><br/>
 
-			<div class="submit">
-				<input type="submit" value="Применить" class="submit_btn">
-			</div>
-		</div>
+		actual_min: {$prices_info->actual->min_price}<br/>
+		actual_max: {$prices_info->actual->max_price}<br/><br/>
+
+		get_min: {$prices_info->get_min}<br/>
+		get_max: {$prices_info->get_max}<br/><br/>
+
+		{*Добавить инпуты и скрипты*}
+
+		min: <input type="text" name="min_price" value="
+		{if $f->get_min}
+		{$f->get_min}
+		{else}
+		{$f->actual_min->value}
+		{/if}" title="Минимальная цена"/>
+		<br/>
+		max: <input type="text" name="max_price" value="
+		{if $f->get_max}
+		{$f->get_max}
+		{else}
+		{$f->actual_max->value}
+		{/if}" title="Максимальная цена"/>
+
 	</div>
 	<!-- /ЦЕНА -->
 	{/if}
@@ -50,7 +63,7 @@
 				get_min: {$f->get_min}<br/>
 				get_max: {$f->get_max}<br/><br/>
 
-				{*Добавить инпуты и крипты*}
+				{*Добавить инпуты и скрипты*}
 
 				min: <input type="text" name="min_{$f->id}" value="
 				{if $f->get_min}

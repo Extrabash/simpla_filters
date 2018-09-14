@@ -188,6 +188,7 @@ class Products extends Simpla
 		if(!empty($filter['category_id']))
 		{
 			$category_id_filter = $this->db->placehold('INNER JOIN __products_categories pc ON pc.product_id = p.id AND pc.category_id in(?@)', (array)$filter['category_id']);
+			$group_by = "GROUP BY p.id";
 		}
 
 		if(!empty($filter['brand_id']))
@@ -247,7 +248,6 @@ class Products extends Simpla
 					SELECT p.id			
 					FROM __products p		
 					$category_id_filter 
-					LEFT JOIN __brands b ON p.brand_id = b.id
 					WHERE 
 						1
 						$product_id_filter
@@ -257,7 +257,8 @@ class Products extends Simpla
 						$is_featured_filter
 						$discounted_filter
 						$in_stock_filter
-						$visible_filter)
+						$visible_filter
+						$group_by)
 					";
 
 		$this->db->query($query);

@@ -252,6 +252,8 @@ class Features extends Simpla
 				}
 				else
 				{
+					// В последнем шаге, если есть фильтрация по ценам, нужно добавить и её
+
 					$features_filter  .= $this->db->placehold('), 1, 0) AS actual,'); 
 					$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
 				}

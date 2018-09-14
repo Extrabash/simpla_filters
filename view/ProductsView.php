@@ -65,6 +65,17 @@ class ProductsView extends View
 		else
 			$filter['sort'] = 'position';			
 		$this->design->assign('sort', $filter['sort']);
+
+
+		// Система фильтрации
+		// Тут мы можем узнать полные диапазоны цен, без учета примененных фильтров
+		$prices_info = new stdClass;
+		$prices_info->total = array_shift($this->products->get_min_max_prices($filter));
+
+		print_r('<b>Диапазоны общие</b><br/>');
+		print_r($prices_info);
+		print_r('<br/><br/>');
+
 		
 		// Система фильтрации
 		// Свойства товаров
@@ -88,6 +99,7 @@ class ProductsView extends View
 					$features[$feature->id]->get_min = floatval($min_val);
 					$features[$feature->id]->get_max = floatval($max_val);
 
+					// Учтем конкретный диапазон для сборки запроса с фильтрацией
 					$filter['features'][$feature->id] = true;
 
 					$digital_features[$feature->id]->id = $feature->id;
@@ -109,8 +121,10 @@ class ProductsView extends View
 			if(!empty($brand))
 				$options_filter['brand_id'] = $brand->id;
 
-			// Тут мы можем узнать полные диапазоны цен, без учета примененных фильтров
+
+
 			
+
 
 			// Проверяем фильтр заполненных фич,
 			// Получим только актуальные опции
@@ -171,6 +185,11 @@ class ProductsView extends View
 			}
 
 			// Тут мы можем узнать края цен, учитывая правильную фильтрацию по всем опциям
+			$prices_info->actual = array_shift($this->products->get_min_max_prices($options_filter));
+
+			print_r('<b>Диапазоны актуальные</b><br/>');
+			print_r($prices_info);
+			print_r('<br/><br/>');
 
 
 			// Тут нам нужны ВСЕ опции,
@@ -224,7 +243,13 @@ class ProductsView extends View
 
 			$this->design->assign('features', $features);
  		}
+
+ 		// Передадим информацию по фильтрации цен
+ 		$this->design->assign('prices_info', $prices_info);
+ 		
  		// Система фильтрации (The end)
+
+
 
 		// Постраничная навигация
 		$items_per_page = $this->settings->products_num;		
