@@ -121,9 +121,6 @@ class Products extends Simpla
 				}
 			}
 
-		print_r('<b>products_filter_inside</b><br/>');
-		print_r($filter);
-		print_r('<br/><br/>');
 
 		$query = "SELECT  
 					p.id,
@@ -159,10 +156,6 @@ class Products extends Simpla
 					$sql_limit";
 
 		$this->db->query($query);
-
-		print_r('<b>Products_query</b><br/>');
-		print_r($query);
-		print_r('<br/><br/>');
 
 		return $this->db->results();
 	}
@@ -235,10 +228,6 @@ class Products extends Simpla
 				}
 			}
 
-		print_r('<b>prices_filter_inside</b><br/>');
-		print_r($filter);
-		print_r('<br/><br/>');
-
 		$query = "  SELECT 
 					MAX(v.price) as max_price,
 					MIN(v.price) as min_price
@@ -262,10 +251,6 @@ class Products extends Simpla
 					";
 
 		$this->db->query($query);
-
-		print_r('<b>prices_query</b><br/>');
-		print_r($query);
-		print_r('<br/><br/>');
 
 		return $this->db->results();
 	}

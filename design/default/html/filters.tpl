@@ -16,18 +16,18 @@
 
 		{*Добавить инпуты и скрипты*}
 
-		min: <input type="text" name="min_price" value="
-		{if $f->get_min}
-		{$f->get_min}
+		min: <input type="text" name="from_price" value="
+		{if $prices_info->from_price}
+			{$prices_info->from_price}
 		{else}
-		{$f->actual_min->value}
+			{$prices_info->total->min_price}
 		{/if}" title="Минимальная цена"/>
 		<br/>
-		max: <input type="text" name="max_price" value="
-		{if $f->get_max}
-		{$f->get_max}
+		max: <input type="text" name="to_price" value="
+		{if $prices_info->to_price}
+			{$prices_info->to_price}
 		{else}
-		{$f->actual_max->value}
+			{$prices_info->total->max_price}
 		{/if}" title="Максимальная цена"/>
 
 	</div>
@@ -41,6 +41,7 @@
 
 		<div>
 			{if $f->options}
+
 				{foreach from=$f->options item=o name=features}
 				<div class='checkbox'>
 					<input type="checkbox" name="{$f->id}[]" value="{$o->value}" id="feature_{$f->id}_{$smarty.foreach.features.index}" {if !$o->actual}disabled{/if} {if $o->selected}checked{/if} onchange="this.form.submit();"/>
@@ -50,9 +51,9 @@
 					</label>
 				</div>
 				{/foreach}
+
 			{else}
-
-
+			
 				full_min: {$f->full_min->value}<br/>
 				full_max: {$f->full_max->value}<br/><br/>
 				

@@ -72,9 +72,12 @@ class ProductsView extends View
 		$prices_info = new stdClass;
 		$prices_info->total = array_shift($this->products->get_min_max_prices($filter));
 
-		print_r('<b>Диапазоны общие</b><br/>');
-		print_r($prices_info);
-		print_r('<br/><br/>');
+		// Так-же получим диапазон из формы, если он передан
+		if(!empty($from_price = $this->request->get('from_price')) && !empty($to_price = $this->request->get('to_price')))
+		{
+			$prices_info->from_price 	= floatval($from_price);
+			$prices_info->to_price		= floatval($to_price);
+		}
 
 		
 		// Система фильтрации
@@ -93,37 +96,40 @@ class ProductsView extends View
 					// Отбор по заполненным фильтрам
 					$filter['features'][$feature->id] = $val;
 				}
-				elseif(!empty($min_val = $this->request->get('min_'.$feature->id)) && !empty($max_val = $this->request->get('max_'.$feature->id)))
+				elseif($feature->digital)
 				{
-					// Тут мы узнали все заданные диапазоны всех диапазонных свойств
-					$features[$feature->id]->get_min = floatval($min_val);
-					$features[$feature->id]->get_max = floatval($max_val);
-
-					// Учтем конкретный диапазон для сборки запроса с фильтрацией
-					$filter['features'][$feature->id] = true;
 
 					$digital_features[$feature->id]->id = $feature->id;
-					$digital_features[$feature->id]->get_min = floatval($min_val);
-					$digital_features[$feature->id]->get_max = floatval($max_val);
+
+					if(!empty($min_val = $this->request->get('min_'.$feature->id)) && !empty($max_val = $this->request->get('max_'.$feature->id)))
+					{
+						// Тут мы узнали заданные пользователем диапазоны
+						$features[$feature->id]->get_min = floatval($min_val);
+						$features[$feature->id]->get_max = floatval($max_val);
+
+						// Флаг для учета конкретного диапазона для сборки запроса с фильтрацией
+						$filter['features'][$feature->id] = true;
+
+						$digital_features[$feature->id]->get_min = floatval($min_val);
+						$digital_features[$feature->id]->get_max = floatval($max_val);
+					}
 				}
 			}
 
 			// Нам нужны опции только от видимых товаров
+			$options_filter['visible'] 	= 1;
 			// И только от товаров в наличии
-			$options_filter['visible'] = 1;
 			$options_filter['in_stock'] = 1;
 
 			$features_ids = array_keys($features);
+
 			if(!empty($features_ids))
 				$options_filter['feature_id'] = $features_ids;
+
 			$options_filter['category_id'] = $category->children;
 
 			if(!empty($brand))
 				$options_filter['brand_id'] = $brand->id;
-
-
-
-			
 
 
 			// Проверяем фильтр заполненных фич,
@@ -148,9 +154,7 @@ class ProductsView extends View
 						if($features[$option->feature_id]->digital)
 						{
 
-							// Тут нужно узнать полный и актуальные минимумы и максимумы 
-
-							// Полные
+							// Тут нужно узнать полный минимум и максимум
 							if(!isset($features[$option->feature_id]->full_min))
 								$features[$option->feature_id]->full_min = $option;
 							if(!isset($features[$option->feature_id]->full_max))
@@ -186,10 +190,6 @@ class ProductsView extends View
 
 			// Тут мы можем узнать края цен, учитывая правильную фильтрацию по всем опциям
 			$prices_info->actual = array_shift($this->products->get_min_max_prices($options_filter));
-
-			print_r('<b>Диапазоны актуальные</b><br/>');
-			print_r($prices_info);
-			print_r('<br/><br/>');
 
 
 			// Тут нам нужны ВСЕ опции,
@@ -246,7 +246,7 @@ class ProductsView extends View
 
  		// Передадим информацию по фильтрации цен
  		$this->design->assign('prices_info', $prices_info);
- 		
+
  		// Система фильтрации (The end)
 
 
@@ -285,18 +285,15 @@ class ProductsView extends View
 		if(!empty($digital_features))
 			$filter['digital_features'] = $digital_features;
 
-		print_r('<b>products_filter</b><br/>');
-		print_r($filter);
-		print_r('<br/><br/>');
-			
+		
 		// Товары 
 		$products = array();
 		foreach($this->products->get_products($filter) as $p)
 			$products[$p->id] = $p;
 			
 		// Если искали товар и найден ровно один - перенаправляем на него
-		if(!empty($keyword) && $products_count == 1)
-			header('Location: '.$this->config->root_url.'/products/'.$p->url);
+		// if(!empty($keyword) && $products_count == 1)
+		//	 header('Location: '.$this->config->root_url.'/products/'.$p->url);
 		
 		if(!empty($products))
 		{

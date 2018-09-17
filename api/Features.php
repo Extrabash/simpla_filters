@@ -200,9 +200,6 @@ class Features extends Simpla
 			}
 		*/
 
-		print_r('<b>options_filter</b><br/>');
-		print_r($filter);
-		print_r('<br/><br/>');
 
 		// Система фильтрации
 		if(isset($filter['features']))
@@ -253,6 +250,11 @@ class Features extends Simpla
 				else
 				{
 					// В последнем шаге, если есть фильтрация по ценам, нужно добавить и её
+					//if(!empty($filter['prices_filter']))
+					//{
+						//$features_filter  .= $this->db->placehold('', $filter['prices_filter']['price_from'],$filter['prices_filter']['printer_create_font(face, height, width, font_weight, italic, underline, strikeout, orientation)']); 
+						//$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
+					//}
 
 					$features_filter  .= $this->db->placehold('), 1, 0) AS actual,'); 
 					$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
@@ -281,11 +283,7 @@ class Features extends Simpla
 										GROUP BY po.feature_id, po.value, actual 
 										ORDER BY value=0, -value DESC, value");
 
-		
-		print_r('<b>options_query</b><br/>');
-		print_r($query);
-		print_r('<br/><br/>');
-		
+				
 		$this->db->query($query);
 		$mid_result = $this->db->results();
 
