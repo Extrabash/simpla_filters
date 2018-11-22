@@ -75,8 +75,11 @@ class ProductsView extends View
 		// Так-же получим диапазон из формы, если он передан
 		if(!empty($from_price = $this->request->get('from_price')) && !empty($to_price = $this->request->get('to_price')))
 		{
-			$prices_info->from_price 	= floatval($from_price);
-			$prices_info->to_price		= floatval($to_price);
+			$prices_info->from_price 				= floatval($from_price);
+			$prices_info->to_price					= floatval($to_price);
+			$filter['prices_filter']['from_price'] 	= floatval($from_price);
+			$filter['prices_filter']['to_price'] 	= floatval($to_price);
+			$options_filter['prices_filter'] 		= $filter['prices_filter'];
 		}
 
 		

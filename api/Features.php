@@ -192,6 +192,10 @@ class Features extends Simpla
 		if(isset($filter['brand_id']))
 			$brand_id_filter = $this->db->placehold('AND po.product_id in(SELECT id FROM __products WHERE brand_id in(?@))', (array)$filter['brand_id']);
 
+		if(isset($filter['in_stock']))
+			$in_stock_filter = $this->db->placehold('AND (SELECT count(*)>0 FROM __variants pv WHERE pv.product_id=po.product_id AND pv.price>0 AND (pv.stock IS NULL OR pv.stock>0) LIMIT 1) = ?', intval($filter['in_stock']));
+
+
 		/*
 		if(isset($filter['features']))
 			foreach($filter['features'] as $feature=>$value)
@@ -199,7 +203,6 @@ class Features extends Simpla
 				$features_filter .= $this->db->placehold('AND (po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value=? )) ', $feature, $feature, $value);
 			}
 		*/
-
 
 		// Система фильтрации
 		if(isset($filter['features']))
@@ -250,11 +253,12 @@ class Features extends Simpla
 				else
 				{
 					// В последнем шаге, если есть фильтрация по ценам, нужно добавить и её
-					//if(!empty($filter['prices_filter']))
-					//{
-						//$features_filter  .= $this->db->placehold('', $filter['prices_filter']['price_from'],$filter['prices_filter']['printer_create_font(face, height, width, font_weight, italic, underline, strikeout, orientation)']); 
-						//$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
-					//}
+					if(!empty($filter['prices_filter']))
+					{
+						$features_filter  .= $this->db->placehold('AND (po.product_id in (SELECT product_id FROM __variants WHERE price BETWEEN ? AND ? ))', 
+											$filter['prices_filter']['from_price'],
+											$filter['prices_filter']['to_price']); 
+					}
 
 					$features_filter  .= $this->db->placehold('), 1, 0) AS actual,'); 
 					$selected_options .= $this->db->placehold('), 1, 0) AS selected,');
@@ -262,6 +266,18 @@ class Features extends Simpla
 
 				// Собрали запрос, который отдаст все опции, но покажет какие актуальные
 			}
+		}
+		elseif(!empty($filter['prices_filter']))
+		{
+
+			// Тут нужно обработать фильтрацию по ценам при условии того что фильтрации по другим параметрам нет
+			// Пум пурум, пум, пум
+			$features_filter  	 = $this->db->placehold('IF (('); 
+			$features_filter  	.= $this->db->placehold('(po.product_id in (SELECT product_id FROM __variants WHERE price BETWEEN ? AND ? ))', 
+								$filter['prices_filter']['from_price'],
+								$filter['prices_filter']['to_price']); 
+			$features_filter  	.= $this->db->placehold('), 1, 0) AS actual,'); 
+
 		}
 		
 
@@ -282,7 +298,6 @@ class Features extends Simpla
 										$in_stock_filter
 										GROUP BY po.feature_id, po.value, actual 
 										ORDER BY value=0, -value DESC, value");
-
 				
 		$this->db->query($query);
 		$mid_result = $this->db->results();

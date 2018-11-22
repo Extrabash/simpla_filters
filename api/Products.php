@@ -312,7 +312,21 @@ class Products extends Simpla
 		
 		if(!empty($filter['features']) && !empty($filter['features']))
 			foreach($filter['features'] as $feature=>$value)
-				$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) ) ', $feature, (array)$value);
+			{
+				if($filter['digital_features'][$feature]->id != $feature)
+				{
+					// Запрос для обычных свойств
+					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) ) ', $feature, (array)$value);
+				}
+				else
+				{
+					// Запрос для диапазонных свойств
+					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? ) ', 
+											$feature,
+											$filter['digital_features'][$feature]->get_min, 
+											$filter['digital_features'][$feature]->get_max);
+				}
+			}
 		
 		$query = "SELECT count(distinct p.id) as count
 				FROM __products AS p
