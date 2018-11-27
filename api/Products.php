@@ -34,6 +34,7 @@ class Products extends Simpla
 		$brand_id_filter = '';
 		$product_id_filter = '';
 		$features_filter = '';
+		$prices_filter = '';
 		$keyword_filter = '';
 		$visible_filter = '';
 		$is_featured_filter = '';
@@ -104,6 +105,7 @@ class Products extends Simpla
 		}
 
 		if(!empty($filter['features']) && !empty($filter['features']))
+		{
 			foreach($filter['features'] as $feature=>$value)
 			{
 				if($filter['digital_features'][$feature]->id != $feature)
@@ -120,6 +122,14 @@ class Products extends Simpla
 											$filter['digital_features'][$feature]->get_max);
 				}
 			}
+		}
+
+		if(!empty($filter['prices_filter']))
+		{
+			$prices_filter = $this->db->placehold('AND (p.id in (SELECT product_id FROM __variants WHERE p.id=product_id AND price BETWEEN ? AND ? ))', 
+											$filter['prices_filter']['from_price'],
+											$filter['prices_filter']['to_price']);  
+		}
 
 
 		$query = "SELECT  
@@ -151,7 +161,8 @@ class Products extends Simpla
 					$discounted_filter
 					$in_stock_filter
 					$visible_filter
-				$group_by
+					$prices_filter
+					$group_by
 				ORDER BY $order
 					$sql_limit";
 
@@ -211,6 +222,7 @@ class Products extends Simpla
 		}
 
 		if(!empty($filter['features']) && !empty($filter['features']))
+		{
 			foreach($filter['features'] as $feature=>$value)
 			{
 				if($filter['digital_features'][$feature]->id != $feature)
@@ -227,6 +239,7 @@ class Products extends Simpla
 											$filter['digital_features'][$feature]->get_max);
 				}
 			}
+		}
 
 		$query = "  SELECT 
 					MAX(v.price) as max_price,
@@ -276,6 +289,7 @@ class Products extends Simpla
 		$in_stock_filter = '';
 		$discounted_filter = '';
 		$features_filter = '';
+		$prices_filter = '';
 		
 		if(!empty($filter['category_id']))
 			$category_id_filter = $this->db->placehold('INNER JOIN __products_categories pc ON pc.product_id = p.id AND pc.category_id in(?@)', (array)$filter['category_id']);
@@ -311,6 +325,7 @@ class Products extends Simpla
 		
 		
 		if(!empty($filter['features']) && !empty($filter['features']))
+		{
 			foreach($filter['features'] as $feature=>$value)
 			{
 				if($filter['digital_features'][$feature]->id != $feature)
@@ -327,6 +342,14 @@ class Products extends Simpla
 											$filter['digital_features'][$feature]->get_max);
 				}
 			}
+		}
+
+		if(!empty($filter['prices_filter']))
+		{
+			$prices_filter = $this->db->placehold('AND (p.id in (SELECT product_id FROM __variants WHERE p.id=product_id AND price BETWEEN ? AND ? ))', 
+											$filter['prices_filter']['from_price'],
+											$filter['prices_filter']['to_price']); 
+		}
 		
 		$query = "SELECT count(distinct p.id) as count
 				FROM __products AS p
@@ -339,7 +362,8 @@ class Products extends Simpla
 					$in_stock_filter
 					$discounted_filter
 					$visible_filter
-					$features_filter ";
+					$features_filter 
+					$prices_filter";
 
 		$this->db->query($query);	
 		return $this->db->result('count');

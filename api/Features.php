@@ -225,7 +225,7 @@ class Features extends Simpla
 				{
 					// Запрос для обычных свойств
 
-					$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value in(?@) )) ', $feature, $feature, $value);
+					$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE product_id=po.product_id AND feature_id=? AND value in(?@) )) ', $feature, $feature, $value);
 
 					$selected_options .= $this->db->placehold('(po.feature_id=? AND po.value in(?@) ) ', $feature, $value);
 				
@@ -233,7 +233,7 @@ class Features extends Simpla
 				else
 				{
 					// Запрос для диапазонных свойств
-					$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? )) ', 
+					$features_filter .= $this->db->placehold('(po.feature_id=? OR po.product_id in (SELECT product_id FROM __options WHERE product_id=po.product_id AND feature_id=? AND value BETWEEN ? AND ? )) ', 
 											$feature,
 											$feature, 
 											$filter['digital_features'][$feature]->get_min, 
@@ -255,7 +255,7 @@ class Features extends Simpla
 					// В последнем шаге, если есть фильтрация по ценам, нужно добавить и её
 					if(!empty($filter['prices_filter']))
 					{
-						$features_filter  .= $this->db->placehold('AND (po.product_id in (SELECT product_id FROM __variants WHERE price BETWEEN ? AND ? ))', 
+						$features_filter  .= $this->db->placehold('AND (po.product_id in (SELECT product_id FROM __variants WHERE po.product_id=product_id AND price BETWEEN ? AND ? ))', 
 											$filter['prices_filter']['from_price'],
 											$filter['prices_filter']['to_price']); 
 					}
