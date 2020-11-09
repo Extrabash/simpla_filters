@@ -59,7 +59,7 @@
 
 				{foreach from=$f->options item=o name=features}
 				<div class='checkbox'>
-					<input type="checkbox" name="{$f->id}[]" value="{$o->value}" id="feature_{$f->id}_{$smarty.foreach.features.index}" {if !$o->actual}disabled{/if} {if $o->selected}checked{/if} onchange="this.form.submit();"/>
+					<input type="checkbox" name="{$f->id}[]" value="{$o->value}" id="feature_{$f->id}_{$smarty.foreach.features.index}" {if !$o->actual}disabled{/if} {if $o->selected}checked{/if} {*onchange="this.form.submit();*}"/>
 
 					<label for="feature_{$f->id}_{$smarty.foreach.features.index}">
 						<div class="name">{$o->value|escape}</div>

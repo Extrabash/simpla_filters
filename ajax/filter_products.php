@@ -7,18 +7,15 @@ $serialized_query = $simpla->request->get('serialized_query');
 $simpla->design->assign('serialized_query', $serialized_query);
 parse_str($serialized_query, $parsed_query);
 
-// Нам нужно знать категорию
-$category_url = $simpla->request->get('category', 'string');
 
 $filter = array();
 $filter['visible'] = 1;	
 
+// Нам нужно знать категорию
+$category_id = $simpla->request->get('category_id', 'integer');
 // Выберем текущую категорию
-if (!empty($category_url))
-{
-	$category = $simpla->categories->get_category((string)$category_url);
-	if (empty($category) || (!$category->visible && empty($_SESSION['admin'])))
-		return false;
+if (!empty($category_id)){
+	$category = $simpla->categories->get_category($category_id);
 	$simpla->design->assign('category', $category);
 	$filter['category_id'] = $category->children;
 }
@@ -29,7 +26,7 @@ $prices_info = new stdClass;
 $prices_info->total = array_shift($simpla->products->get_min_max_prices($filter));
 
 // Так-же получим диапазон из формы, если он передан
-if(!empty($from_price = $this->request->get('from_price')) && !empty($to_price = $this->request->get('to_price')))
+if(!empty($from_price = $serialized_query['from_price']) && !empty($to_price = $serialized_query['to_price']))
 {
 	$prices_info->from_price 				= floatval($from_price);
 	$prices_info->to_price					= floatval($to_price);
@@ -39,19 +36,21 @@ if(!empty($from_price = $this->request->get('from_price')) && !empty($to_price =
 }
 
 // Система фильтрации
-		// Свойства товаров
+// Свойства товаров
+
+
 if(!empty($category))
 {
 	$features = array();
 	$digital_features = array();
-	foreach($this->features->get_features(array('category_id'=>$category->id, 'in_filter'=>1)) as $feature)
+	foreach($simpla->features->get_features(array('category_id'=>$category->id, 'in_filter'=>1)) as $feature)
 	{
 				// Собираем массив всех фич
 		$features[$feature->id] = $feature;
-		if(!empty($val = $this->request->get($feature->id)))
+		if(!empty($val = $serialized_query[$feature->id]))
 		{
-					// Добавляем в фильтрацию товаров
-					// Отбор по заполненным фильтрам
+			// Добавляем в фильтрацию товаров
+			// Отбор по заполненным фильтрам
 			$filter['features'][$feature->id] = $val;
 		}
 		elseif($feature->digital)
@@ -59,7 +58,7 @@ if(!empty($category))
 
 			$digital_features[$feature->id]->id = $feature->id;
 
-			if(!empty($min_val = $this->request->get('min_'.$feature->id)) && !empty($max_val = $this->request->get('max_'.$feature->id)))
+			if(!empty($min_val = $serialized_query['min_'.$feature->id]) && !empty($max_val = $serialized_query['max_'.$feature->id]))
 			{
 						// Тут мы узнали заданные пользователем диапазоны
 				$features[$feature->id]->get_min = floatval($min_val);
@@ -74,9 +73,9 @@ if(!empty($category))
 		}
 	}
 
-			// Нам нужны опции только от видимых товаров
+	// Нам нужны опции только от видимых товаров
 	$options_filter['visible'] 	= 1;
-			// И только от товаров в наличии
+	// И только от товаров в наличии
 	$options_filter['in_stock'] = 1;
 
 	$features_ids = array_keys($features);
@@ -86,24 +85,20 @@ if(!empty($category))
 
 	$options_filter['category_id'] = $category->children;
 
-	if(!empty($brand))
-		$options_filter['brand_id'] = $brand->id;
-
-
-			// Проверяем фильтр заполненных фич,
-			// Получим только актуальные опции
+	// Проверяем фильтр заполненных фич,
+	// Получим только актуальные опции
 	if(isset($filter['features']))
 		$options_filter['features'] = $filter['features'];
 
-			// Передадим все о цифровых опциях если такие есть
+	// Передадим все о цифровых опциях если такие есть
 	if(!empty($digital_features))
 	{
 
 		$options_filter['digital_features'] = $digital_features;
 
 
-				// Первая фильтрация, позволит узнать полные края диапазонов
-		$options_mid = $this->features->get_options($options_filter);
+		// Первая фильтрация, позволит узнать полные края диапазонов
+		$options_mid = $simpla->features->get_options($options_filter);
 
 		foreach ($options_mid as $option) {
 			if(isset($features[$option->feature_id]))
@@ -128,13 +123,13 @@ if(!empty($category))
 			}
 		}
 
-				// Очистим опцию, чтобы не влетела в следующий перебор
+		// Очистим опцию, чтобы не влетела в следующий перебор
 		unset($option);
 
 
-				// Узнав полные диапазоны фильтра,
-				// Мы можем учитывать его в фильтрации, или не учитывать
-				// Основываясь на этой информации
+		// Узнав полные диапазоны фильтра,
+		// Мы можем учитывать его в фильтрации, или не учитывать
+		// Основываясь на этой информации
 
 		foreach ($digital_features as $df) {
 			if(($features[$df->id]->full_min->value == $df->get_min) && ($features[$df->id]->full_max->value == $df->get_max))
@@ -147,13 +142,13 @@ if(!empty($category))
 	}
 
 			// Тут мы можем узнать края цен, учитывая правильную фильтрацию по всем опциям
-	$prices_info->actual = array_shift($this->products->get_min_max_prices($options_filter));
+	$prices_info->actual = array_shift($simpla->products->get_min_max_prices($options_filter));
 
 
 			// Тут нам нужны ВСЕ опции,
 			// Нужно узнать какие из них Актуальные,
 			// А какие еще и выделены в данный момент
-	$options = $this->features->get_options($options_filter);
+	$options = $simpla->features->get_options($options_filter);
 
 			// Тут мы уже знаем все опции всех подходящих товаров, в том числе и цифровые,
 			// Без учета фильтрации по диапазону,
@@ -199,16 +194,20 @@ if(!empty($category))
 			unset($features[$i]);
 	}
 
-	$this->design->assign('features', $features);
+	$simpla->design->assign('features', $features);
 }
 
- 		// Передадим информацию по фильтрации цен
-$this->design->assign('prices_info', $prices_info);
+// Передадим информацию по фильтрации цен
+$simpla->design->assign('prices_info', $prices_info);
 
- 		// Система фильтрации (The end)
+// Система фильтрации (The end)
+
+
+//$result = $simpla->design->fetch('filters.tpl');
+$result = $category->name;
 
 header("Content-type: application/json; charset=UTF-8");
 header("Cache-Control: must-revalidate");
 header("Pragma: no-cache");
 header("Expires: -1");
-print json_encode($serialized_query);
+print json_encode($result);
