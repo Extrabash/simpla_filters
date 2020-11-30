@@ -10,7 +10,6 @@ $('aside .form .checkbox label').click(function(e){
 
 $('#filter input[type=checkbox]').live('change', function(e){
 	e.preventDefault();
-	console.log('nen1f');
 	bash_filter();
 });
 
@@ -79,7 +78,7 @@ function bash_filter(){
 
 					filter.find('.price_range input.ot').val( actual_min_val );
 					filter.find('.price_range input.do').val( actual_max_val );
-					
+
 					range_slider.update({"disable": false});
 				}*/
 

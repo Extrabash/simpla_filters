@@ -18,11 +18,11 @@
 
 			{*Добавить инпуты и скрипты*}
 
-			<input 
-			type="text" 
+			<input
+			type="text"
 			style="display: none;"
 			id="prices_range"
-			class="range_slider"
+			class="range_slider js-range-slider"
 
 			data-type="double"
 
@@ -73,8 +73,8 @@
 				{*
 				full_min: {$f->full_min->value}<br/>
 				full_max: {$f->full_max->value}<br/><br/>
-				
-				
+
+
 				actual_min: {$f->actual_min->value}<br/>
 				actual_max: {$f->actual_max->value}<br/><br/>
 
@@ -84,11 +84,11 @@
 
 				{*Добавить инпуты и скрипты*}
 
-				<input 
-				type="text" 
+				<input
+				type="text"
 				style="display: none;"
 				id="prices_range"
-				class="range_slider"
+				class="range_slider js-range-slider"
 
 				data-type="double"
 
@@ -106,7 +106,7 @@
 				data-fake_from_max="{$f->actual_max->value}"
 				/>
 
-				min: <input type="text" class="range_from"  name="min_{$f->id}" value="{if $f->get_min}{$f->get_min}{else}{$f->full_min->value}{/if}" 
+				min: <input type="text" class="range_from"  name="min_{$f->id}" value="{if $f->get_min}{$f->get_min}{else}{$f->full_min->value}{/if}"
 				title="Минимальное значение {$f->name|escape}"/>
 				<br/>
 				max: <input type="text" class="range_to"  name="max_{$f->id}" value="{if $f->get_max}{$f->get_max}{else}{$f->full_max->value}{/if}" title="Максимальное значение {$f->name|escape}"/>
@@ -122,7 +122,7 @@
 		<input type="submit" value="Применить" class="submit_btn">
 	</div>
 
-	
+
 	{* Плашка для аякса - позволит показать кнопку фильтрации с количеством *}
 	<div class="show_box" style="display: none;">
 		<div class="text">{$total_products_num|plural:'Найден':'Найдено':'Найдено'}</div>

@@ -13,5 +13,6 @@
 > Будут изменяться стандартные файлы simplaCms,
 > При внедрении будьте внимательны
 
-1. Добавить файл ajax/filter_products.php,
-2.
+1. Импортировать(усли данные не важны) файл s_features s_features.sql,
+2. Добавить файл ajax/filter_products.php,
+3.
