@@ -118,8 +118,8 @@ class Products extends Simpla
 					// Запрос для диапазонных свойств
 					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? ) ', 
 											$feature,
-											$filter['digital_features'][$feature]->get_min, 
-											$filter['digital_features'][$feature]->get_max);
+											floatval($filter['digital_features'][$feature]->get_min), 
+											floatval($filter['digital_features'][$feature]->get_max));
 				}
 			}
 		}
@@ -127,8 +127,8 @@ class Products extends Simpla
 		if(!empty($filter['prices_filter']))
 		{
 			$prices_filter = $this->db->placehold('AND (p.id in (SELECT product_id FROM __variants WHERE p.id=product_id AND price BETWEEN ? AND ? ))', 
-											$filter['prices_filter']['from_price'],
-											$filter['prices_filter']['to_price']);  
+											floatval($filter['prices_filter']['from_price']),
+											floatval($filter['prices_filter']['to_price']));  
 		}
 
 
@@ -235,8 +235,8 @@ class Products extends Simpla
 					// Запрос для диапазонных свойств
 					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? ) ', 
 											$feature,
-											$filter['digital_features'][$feature]->get_min, 
-											$filter['digital_features'][$feature]->get_max);
+											floatval($filter['digital_features'][$feature]->get_min), 
+											floatval($filter['digital_features'][$feature]->get_max));
 				}
 			}
 		}
@@ -338,8 +338,8 @@ class Products extends Simpla
 					// Запрос для диапазонных свойств
 					$features_filter .= $this->db->placehold('AND p.id in (SELECT product_id FROM __options WHERE feature_id=? AND value BETWEEN ? AND ? ) ', 
 											$feature,
-											$filter['digital_features'][$feature]->get_min, 
-											$filter['digital_features'][$feature]->get_max);
+											floatval($filter['digital_features'][$feature]->get_min), 
+											floatval($filter['digital_features'][$feature]->get_max));
 				}
 			}
 		}
