@@ -155,7 +155,7 @@ class Features extends Simpla
 
 	// Система фильтрации
 	// Довольно сильно переработана функция
-	public function get_options($filter = array())
+	public function get_options($filter = array(), $adminPanel = false)
 	{
 		$feature_id_filter = '';
 		$product_id_filter = '';
@@ -303,19 +303,54 @@ class Features extends Simpla
 
 
 		// Отметим актуальные, оставим униклаьные
-		$actual_options = array();
-		if(!empty($mid_result))
+		// Разложим сначала все опции по фичам
+		$featuredOptions = array();
+		$actualizedArray = array();
+
+		if($mid_result && !$adminPanel)
 		{
-			foreach ($mid_result as $mr)
+			foreach ($mid_result as $mr) 
 			{
-				if((empty($actual_options[$mr->feature_id . '_' . $mr->value])) || (intval($actual_options[$mr->feature_id . '_' . $mr->value]->actual) < intval($mr->actual)))
+				$featuredOptions[$mr->feature_id]['optionObjects'][] = $mr;
+				$featuredOptions[$mr->feature_id]['values'][] = $mr->value;
+			}
+			
+			foreach ($featuredOptions as $feature_id => &$featureOptions)
+			{
+				// Оставим только униальные значения
+				$featureOptions['values'] = array_unique($featureOptions['values']);
+
+				foreach ($featureOptions['values'] as $uniqueValue)
 				{
-					$actual_options[$mr->feature_id . '_' . $mr->value] = $mr;
+					//$actualizedArray
+					$actualFlag = 0;
+					$selectedFlag = 0;
+
+					foreach($featureOptions['optionObjects'] as $optionObject)
+					{
+						if($optionObject->value == $uniqueValue)
+						{
+							if ($optionObject->actual)
+								$actualFlag = 1;
+							if ($optionObject->selected)
+								$selectedFlag = 1;
+						}
+					}
+
+					$uniqueObj = new stdClass();
+					$uniqueObj->value = $uniqueValue;
+					$uniqueObj->feature_id = $feature_id;
+					$uniqueObj->actual = $actualFlag;
+					$uniqueObj->selected = $selectedFlag;
+
+					$actualizedArray[] = $uniqueObj;
 				}
 			}
 		}
+		else
+			$actualizedArray = $mid_result;
 
-		return $actual_options;
+		return $actualizedArray;
 	}
 	// Система фильтрации (The end)
 
